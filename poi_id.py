@@ -219,22 +219,25 @@ k_best_features
 # In[72]:
 
 
-# extraido  de https://olegleyz.github.io/enron_classifier.html
+# inspirado no código oferecido em https://www.kaggle.com/grfiv4/plotting-feature-importances
 
 #Decision tree using features with non-null importance
 clf = DecisionTreeClassifier(random_state = 75)
 clf.fit(df.ix[:,1:], df.ix[:,:1])
+dftrain = df.ix[:,1:]
+top_n = 15
 
 # show the features with non null importance, sorted and create features_list of features for the model
-features_importance = []
-for i in range(len(clf.feature_importances_)):
-    if clf.feature_importances_[i] > 0:
-        features_importance.append([df.columns[i+1], clf.feature_importances_[i]])
-features_importance.sort(key=lambda x: x[1], reverse = True)
-for f_i in features_importance:
-    print f_i
-features_list = [x[0] for x in features_importance]
-features_list.insert(0, 'poi')
+feat_imp = pd.DataFrame({'importance':clf.feature_importances_})    
+feat_imp['feature'] = dftrain.columns
+feat_imp.sort_values(by='importance', ascending=False, inplace=True)
+feat_imp = feat_imp.iloc[:top_n]
+    
+feat_imp.sort_values(by='importance', inplace=True)
+feat_imp = feat_imp.set_index('feature', drop=True)
+feat_imp.plot.barh(title="features importance", figsize=(8,8))
+plt.xlabel('Feature Importance Score')
+plt.show()
 
 
 # In[73]:
