@@ -32,55 +32,6 @@ import pandas as pd
 from sklearn.preprocessing import Imputer
 
 
-# In[66]:
-
-
-#A forma de se criar novas features foram obtidas no seguinte endereco
-#https://github.com/nehal96/Machine-Learning-Enron-Fraud/blob/master/final_project/poi_id.py
-###############################################################################################
-def CreatePoiEmailRatio(data_dict, features_list):
-    """
-    Adds a new feature to the feature list: POI Email Ratio.
-    """
-    features = ['from_messages', 'to_messages', 'from_poi_to_this_person',
-                'from_this_person_to_poi']
-    for key in data_dict:
-        employee = data_dict[key]
-        is_valid = True
-        for feature in features:
-            if employee[feature] == 'NaN':
-                is_valid = False
-        if is_valid:
-            total_from = employee['from_poi_to_this_person'] + employee['from_messages']
-            total_to = employee['from_this_person_to_poi'] + employee['to_messages']
-            to_poi_ratio = float(employee['from_this_person_to_poi']) / total_to
-            from_poi_ratio = float(employee['from_poi_to_this_person']) / total_from
-            employee['poi_email_ratio'] = to_poi_ratio + from_poi_ratio
-        else:
-            employee['poi_email_ratio'] = 'NaN'
-    features_list.append('poi_email_ratio')
-##############################################################################################
-
-def CreateExercisedStockRatio(data_dict, features_list):
-    """
-    Adds a new feature to the feature list: Exercised Stock Ratio
-
-    """
-    features = ['exercised_stock_options', 'total_stock_value']
-    for key in data_dict:
-        employee = data_dict[key]
-        is_valid = True
-        for feature in features:
-            if employee[feature] == 'NaN':
-                is_valid = False
-        if is_valid:
-            employee['exercised_stock_ratio'] = float(employee['exercised_stock_options']) / employee['total_stock_value']
-        else:
-            employee['exercised_stock_ratio'] = 'NaN'
-
-    features_list.append('exercised_stock_ratio')
-##################################################################################################
-
 
 # In[67]:
 
@@ -110,7 +61,7 @@ feature_list_1 =['poi',
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict_1 = pickle.load(data_file)
-CreatePoiEmailRatio(data_dict_1, feature_list_1)
+
 
 #CreateExercisedStockRatio(data_dict_1, feature_list_1)
 
@@ -124,7 +75,7 @@ def bestfeatures(data_dict_1, feature_list_1):
     labels_1, features_1 = targetFeatureSplit(data_1)
 # Example starting point. Try investigating other evaluation techniques!
     from sklearn.cross_validation import train_test_split
-    features_train_1, features_test_1, labels_train_1, labels_test_1 =         train_test_split(features_1, labels_1, test_size=0.01, random_state=42)
+    features_train_1, features_test_1, labels_train_1, labels_test_1 = train_test_split(features_1, labels_1, test_size=0.01, random_state=42)
         
     selector.fit(features_train_1, labels_train_1)
     scores = -np.log10(selector.pvalues_)
@@ -140,7 +91,7 @@ def bestfeatures(data_dict_1, feature_list_1):
 scores_1 = bestfeatures(data_dict_1, feature_list_1).scores_
 tuples = zip(feature_list_1[1:], scores_1)
 k_best_features = sorted(tuples, key = lambda x: x[1], reverse = True)
-k_best_features
+kbest_inicial = k_best_features
 
 
 # In[68]:
@@ -208,12 +159,28 @@ my_dataset.pop("TOTAL", 0)
 #######################################################################################
 
 # lista as features mais relevantes no metodo Kselector.
+feature_list_2 = ['poi',
+                'bonus',
+                'deferred_income', 
+                'deferral_payments',
+                'loan_advances', 
+                'other',
+                'expenses', 
+                'director_fees',
+                'total_payments',
+                'exercised_stock_options',
+                'restricted_stock',
+                'restricted_stock_deferred',
+                'total_stock_value',
+                'to_messages',
+                'from_messages',
+                'from_this_person_to_poi',
+                'from_poi_to_this_person', 'long_term_incentive', 'salary']
 
-
-scores_2 = bestfeatures(my_dataset, feature_list_1).scores_
+scores_2 = bestfeatures(my_dataset, feature_list_2).scores_
 tuples = zip(feature_list_1[1:], scores_1)
 k_best_features = sorted(tuples, key = lambda x: x[1], reverse = True)
-k_best_features
+kbest_tratado = k_best_features
 
 
 # In[72]:
@@ -249,6 +216,13 @@ plt.show()
 #features_list = feature_list_1
 
 ########################################################################################
+features_list = ['poi',
+                'other',
+                'expenses', 
+                'total_payments',
+                'from_messages',
+                'from_this_person_to_poi',
+                'from_poi_to_this_person', 'long_term_incentive']
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
