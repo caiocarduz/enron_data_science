@@ -109,54 +109,48 @@ df.info()
 
 
 # Substitui 'NaN' por 0
+# =============================================================================
 df.ix[:,:13] = df.ix[:,:13].fillna(0)
 df.ix[:,19:20] = df.ix[:,19:20].fillna(0)
 df.replace('inf',0)
 df.info()
+# =============================================================================
 
 
 # In[70]:
 
+df['to_messages'] = df['to_messages'].fillna((df['to_messages'].mean()))
+df['from_messages'] = df['from_messages'].fillna((df['from_messages'].mean()))
+df['from_this_person_to_poi'] = df['from_this_person_to_poi'].fillna((df['from_this_person_to_poi'].mean()))
+#df['long_term_incentive'] = df['long_term_incentive'].fillna((df['long_term_incentive'].mean()))
+df['long_term_incentive'] = df['long_term_incentive'].fillna(0)
+df['from_poi_to_this_person'] = df['from_poi_to_this_person'].fillna((df['from_poi_to_this_person'].mean()))
+#df['salary'] = df['salary'].fillna((df['salary'].median()))
+df['salary'] = df['salary'].fillna(0)
+df.replace('inf',0)
 
-#Remove os null values e substitui pela média. utiliza Sklearn prepro
 
-features = ['to_messages', 'from_messages', 'from_this_person_to_poi', 'from_poi_to_this_person','salary', 'long_term_incentive',           'bonus']
-
-imp = Imputer(missing_values='NaN', strategy='median', axis=0)
-
-#impute missing values of email features 
-df.loc[df[df.poi == 1].index,features] = imp.fit_transform(df[features][df.poi == 1])
-df.loc[df[df.poi == 0].index,features] = imp.fit_transform(df[features][df.poi == 0])
-
+##cria nova feature
+df['poi_to_email'] = df['from_this_person_to_poi']/df['to_messages']
+df['poi_from_email'] = df['from_poi_to_this_person']/df['from_messages']
 df.info()
+
+# =============================================================================
+# #Remove os null values e substitui pela média. utiliza Sklearn prepro
+# 
+# features = ['to_messages', 'from_messages', 'from_this_person_to_poi', 'from_poi_to_this_person','salary', 'long_term_incentive',           'bonus']
+# 
+# imp = Imputer(missing_values='NaN', strategy='median', axis=0)
+# 
+# #impute missing values of email features 
+# df.loc[df[df.poi == 1].index,features] = imp.fit_transform(df[features][df.poi == 1])
+# df.loc[df[df.poi == 0].index,features] = imp.fit_transform(df[features][df.poi == 0])
+# 
+# df.info()
+# =============================================================================
 
 
 # In[71]:
-
-
-
-### Task 1: Select what features you'll use.
-### features_list is a list of strings, each of which is a feature name.
-### The first feature must be "poi".
- # You will need to use more features
-    
-my_dataset = df[feature_list_1].to_dict(orient = 'index')
-
-### Task 2: Remove outliers
-
-my_dataset.pop("TOTAL", 0)
-
-
-### define as melhores variaveis pelo metodo Kselector. 
-
-#bestfeatures(my_dataset, feature_list_1)
-
-# Para plotar os Scores do Kbest Selector descomente abaixo ###########################
-#plt.bar(range(len(feature_list_1[1:])), bestfeatures(my_dataset, feature_list_1))
-#plt.xticks(range(len(feature_list_1[1:])), feature_list_1[1:], rotation = 'vertical')
-#plt.show()
-
-#######################################################################################
 
 # lista as features mais relevantes no metodo Kselector.
 feature_list_2 = ['poi',
@@ -175,10 +169,36 @@ feature_list_2 = ['poi',
                 'to_messages',
                 'from_messages',
                 'from_this_person_to_poi',
-                'from_poi_to_this_person', 'long_term_incentive', 'salary']
+                'from_poi_to_this_person', 'long_term_incentive', 'salary', 'poi_to_email','poi_from_email']
+
+
+### Task 1: Select what features you'll use.
+### features_list is a list of strings, each of which is a feature name.
+### The first feature must be "poi".
+ # You will need to use more features
+    
+my_dataset = df[feature_list_2].to_dict(orient = 'index')
+
+### Task 2: Remove outliers
+
+my_dataset.pop("TOTAL", 0)
+
+
+### define as melhores variaveis pelo metodo Kselector. 
+
+#bestfeatures(my_dataset, feature_list_1)
+
+# Para plotar os Scores do Kbest Selector descomente abaixo ###########################
+#plt.bar(range(len(feature_list_1[1:])), bestfeatures(my_dataset, feature_list_1))
+#plt.xticks(range(len(feature_list_1[1:])), feature_list_1[1:], rotation = 'vertical')
+#plt.show()
+
+#######################################################################################
+
+
 
 scores_2 = bestfeatures(my_dataset, feature_list_2).scores_
-tuples = zip(feature_list_1[1:], scores_1)
+tuples = zip(feature_list_2[1:], scores_2)
 k_best_features = sorted(tuples, key = lambda x: x[1], reverse = True)
 kbest_tratado = k_best_features
 
@@ -192,7 +212,7 @@ kbest_tratado = k_best_features
 clf = DecisionTreeClassifier(random_state = 75)
 clf.fit(df.ix[:,1:], df.ix[:,:1])
 dftrain = df.ix[:,1:]
-top_n = 15
+top_n = 20
 
 # show the features with non null importance, sorted and create features_list of features for the model
 feat_imp = pd.DataFrame({'importance':clf.feature_importances_})    
@@ -213,16 +233,17 @@ plt.show()
 
 ## descomentar caso for utilizar o metodo pipeline.#####################################
 
-#features_list = feature_list_1
+features_list = feature_list_2
 
 ########################################################################################
-features_list = ['poi',
-                'other',
-                'expenses', 
-                'total_payments',
-                'from_messages',
-                'from_this_person_to_poi',
-                'from_poi_to_this_person', 'long_term_incentive']
+#features_list = ['poi',
+#                'other',
+#                'expenses', 
+#                'total_payments',
+#                'from_messages',
+#                'from_this_person_to_poi',
+#                'from_poi_to_this_person', 'long_term_incentive', 'poi_to_email','bonus',
+#                'restricted_stock', 'exercised_stock_options','salary']
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -237,22 +258,22 @@ labels, features = targetFeatureSplit(data)
 
 ##### Provided to give you a starting point. Try a variety of classifiers.#############
 
-clf = DecisionTreeClassifier(class_weight = {0:1.2},min_samples_split = 50,random_state = 295,max_depth = None)
+#clff = DecisionTreeClassifier(class_weight = {1:10,0:6},min_samples_split = 45,random_state = 29,max_depth = None)
 
 #### descomentar caso for utilizar o metodo pipeline. Descomentar somente um classificador por vez.#####
 #clff = GaussianNB()
 #clff = RandomForestClassifier(min_samples_split = 10)
 #clff = neighbors.kNeighborsClassifier(n_neighbors = 6)
 #clff = linear_model.LogisticRegression( C=1e5)
-#clf = KMeans(n_clusters =2)
+clff = KMeans(n_clusters =2)
 #clff = SVC()
 ########################################################################################################
 
 ####### Para pipeline descomentar as variaveis abaixo #######################################
-#pca1 = PCA(n_components = 7)
-#selector = SelectKBest(f_classif, k = 15)
-#scaler = MinMaxScaler()
-#clf = Pipeline([("rescalar",scaler), ("seletor", selector), ('clf', clff)])
+#pca1 = PCA(n_components = 2)
+selector = SelectKBest(f_classif, k = 5)
+scaler = MinMaxScaler()
+clf = Pipeline([("selector",selector),('scaler', scaler), ('clf', clff)])
 ##############################################################################################
 
 ### Pra GridSearch descomentar estimator, parameters e clf ###################################
