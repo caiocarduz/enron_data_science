@@ -119,7 +119,7 @@ df.info()
 
 # In[70]:
 
-df['to_messages'] = df['to_messages'].fillna((df['to_messages'].mean()))
+df['to_messages'].query("poi == 'False'") = df['to_messages'].fillna((df['to_messages'].mean()))
 df['from_messages'] = df['from_messages'].fillna((df['from_messages'].mean()))
 df['from_this_person_to_poi'] = df['from_this_person_to_poi'].fillna((df['from_this_person_to_poi'].mean()))
 #df['long_term_incentive'] = df['long_term_incentive'].fillna((df['long_term_incentive'].mean()))
@@ -127,7 +127,7 @@ df['long_term_incentive'] = df['long_term_incentive'].fillna(0)
 df['from_poi_to_this_person'] = df['from_poi_to_this_person'].fillna((df['from_poi_to_this_person'].mean()))
 #df['salary'] = df['salary'].fillna((df['salary'].median()))
 df['salary'] = df['salary'].fillna(0)
-df.replace('inf',0)
+df.replace(np.inf,0, inplace= True)
 
 
 ##cria nova feature
@@ -219,17 +219,17 @@ plt.show()
 
 ## descomentar caso for utilizar o metodo pipeline.#####################################
 
-features_list = feature_list_2
+#features_list = feature_list_2
 
 ########################################################################################
-#features_list = ['poi',
-#                'other',
-#                'expenses', 
-#                'total_payments',
-#                'from_messages',
-#                'from_this_person_to_poi',
-#                'from_poi_to_this_person', 'long_term_incentive', 'poi_to_email','bonus',
-#                'restricted_stock', 'exercised_stock_options','salary']
+features_list = ['poi',
+                'other',
+                'expenses', 
+                'total_payments',
+                'from_messages',
+                'from_this_person_to_poi',
+                'from_poi_to_this_person', 'long_term_incentive','poi_to_email','bonus',
+                'restricted_stock', 'exercised_stock_options','salary']
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
@@ -244,22 +244,22 @@ labels, features = targetFeatureSplit(data)
 
 ##### Provided to give you a starting point. Try a variety of classifiers.#############
 
-#clff = DecisionTreeClassifier(class_weight = {1:10,0:6},min_samples_split = 45,random_state = 29,max_depth = None)
+clff = DecisionTreeClassifier(class_weight = {1:10,0:6},min_samples_split = 45,random_state = 29,max_depth = None)
 
 #### descomentar caso for utilizar o metodo pipeline. Descomentar somente um classificador por vez.#####
 #clff = GaussianNB()
 #clff = RandomForestClassifier(min_samples_split = 10)
 #clff = neighbors.kNeighborsClassifier(n_neighbors = 6)
 #clff = linear_model.LogisticRegression( C=1e5)
-clff = KMeans(n_clusters =2)
+#clff = KMeans(n_clusters =2)
 #clff = SVC()
 ########################################################################################################
 
 ####### Para pipeline descomentar as variaveis abaixo #######################################
-#pca1 = PCA(n_components = 2)
-selector = SelectKBest(f_classif, k = 5)
-scaler = MinMaxScaler()
-clf = Pipeline([("selector",selector),('scaler', scaler), ('clf', clff)])
+pca1 = PCA(n_components = 2)
+#selector = SelectKBest(f_classif, k = 5)
+#scaler = MinMaxScaler()
+clf = Pipeline([("PCA",pca1), ('clf', clff)])
 ##############################################################################################
 
 ### Pra GridSearch descomentar estimator, parameters e clf ###################################
