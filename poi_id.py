@@ -135,20 +135,6 @@ df['poi_to_email'] = df['from_this_person_to_poi']/df['to_messages']
 df['poi_from_email'] = df['from_poi_to_this_person']/df['from_messages']
 df.info()
 
-# =============================================================================
-# #Remove os null values e substitui pela média. utiliza Sklearn prepro
-# 
-# features = ['to_messages', 'from_messages', 'from_this_person_to_poi', 'from_poi_to_this_person','salary', 'long_term_incentive',           'bonus']
-# 
-# imp = Imputer(missing_values='NaN', strategy='median', axis=0)
-# 
-# #impute missing values of email features 
-# df.loc[df[df.poi == 1].index,features] = imp.fit_transform(df[features][df.poi == 1])
-# df.loc[df[df.poi == 0].index,features] = imp.fit_transform(df[features][df.poi == 0])
-# 
-# df.info()
-# =============================================================================
-
 
 # In[71]:
 
