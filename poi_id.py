@@ -118,21 +118,31 @@ df.info()
 
 
 # In[70]:
+#condiciona as medianas por poi.
+#df['to_messages'].fillna(df.groupby(['poi'])['to_messages'].transform(np.median), inplace =True)
+#df['from_messages'].fillna(df.groupby(['poi'])['from_messages'].transform(np.median), inplace =True)
+#df['from_this_person_to_poi'].fillna(df.groupby(['poi'])['from_this_person_to_poi'].transform(np.median), inplace =True)
+#df['from_poi_to_this_person'].fillna(df.groupby(['poi'])['from_poi_to_this_person'].transform(np.median), inplace =True)
 
-df['to_messages'].query("poi == 'False'") = df['to_messages'].fillna((df['to_messages'].mean()))
-df['from_messages'] = df['from_messages'].fillna((df['from_messages'].mean()))
-df['from_this_person_to_poi'] = df['from_this_person_to_poi'].fillna((df['from_this_person_to_poi'].mean()))
-#df['long_term_incentive'] = df['long_term_incentive'].fillna((df['long_term_incentive'].mean()))
+
+
+
+df['to_messages'] = df['to_messages'].fillna(df['to_messages'].mean())
+df['from_messages'] = df['from_messages'].fillna(df['from_messages'].mean())
+df['from_this_person_to_poi'] = df['from_this_person_to_poi'].fillna(df['from_this_person_to_poi'].mean())
+#df['long_term_incentive'] = df['long_term_incentive'].fillna((df['long_term_incentive'].median()))
 df['long_term_incentive'] = df['long_term_incentive'].fillna(0)
-df['from_poi_to_this_person'] = df['from_poi_to_this_person'].fillna((df['from_poi_to_this_person'].mean()))
-#df['salary'] = df['salary'].fillna((df['salary'].median()))
+#df['from_poi_to_this_person'] = df['from_poi_to_this_person'].fillna((df['from_poi_to_this_person'].mean()))
+##df['salary'] = df['salary'].fillna((df['salary'].median()))
 df['salary'] = df['salary'].fillna(0)
 df.replace(np.inf,0, inplace= True)
-
-
-##cria nova feature
+df.replace(np.nan, 0, inplace = True)
+#
+#
+###cria nova feature
 df['poi_to_email'] = df['from_this_person_to_poi']/df['to_messages']
 df['poi_from_email'] = df['from_poi_to_this_person']/df['from_messages']
+#df['medio_poi_ratio'] = (df['from_this_person_to_poi']/df['to_messages'] * df['from_poi_to_this_person']/df['from_messages'])/2
 df.info()
 
 
@@ -231,6 +241,18 @@ features_list = ['poi',
                 'from_poi_to_this_person', 'long_term_incentive','poi_to_email','bonus',
                 'restricted_stock', 'exercised_stock_options','salary']
 
+# =============================================================================
+# features para classificação com data wrangling condicionado 
+# #features_list = ['poi',
+# #                 'other','medio_poi_ratio', 'to_messages'
+# #                ,
+# #                'poi_to_email', 'bonus','total_payments',
+# #           
+# #                'salary']
+# 
+# =============================================================================
+
+
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
@@ -244,11 +266,12 @@ labels, features = targetFeatureSplit(data)
 
 ##### Provided to give you a starting point. Try a variety of classifiers.#############
 
-clff = DecisionTreeClassifier(class_weight = {1:10,0:6},min_samples_split = 45,random_state = 29,max_depth = None)
+clf = DecisionTreeClassifier(class_weight = {1:40,0:6},min_samples_split = 2,random_state = 29,max_depth = 3)
 
 #### descomentar caso for utilizar o metodo pipeline. Descomentar somente um classificador por vez.#####
 #clff = GaussianNB()
-#clff = RandomForestClassifier(min_samples_split = 10)
+#clff = RandomForestClassifier(n_estimators = 3, random_state = 29,\
+#                             min_samples_split = 2, max_depth = 7, class_weight = {1:40,0:6})  # {1:6.5,0:6})
 #clff = neighbors.kNeighborsClassifier(n_neighbors = 6)
 #clff = linear_model.LogisticRegression( C=1e5)
 #clff = KMeans(n_clusters =2)
@@ -256,10 +279,10 @@ clff = DecisionTreeClassifier(class_weight = {1:10,0:6},min_samples_split = 45,r
 ########################################################################################################
 
 ####### Para pipeline descomentar as variaveis abaixo #######################################
-pca1 = PCA(n_components = 2)
-#selector = SelectKBest(f_classif, k = 5)
+#pca1 = PCA(n_components = 6)
+#selector = SelectKBest(f_classif, k = 3)
 #scaler = MinMaxScaler()
-clf = Pipeline([("PCA",pca1), ('clf', clff)])
+#clf = Pipeline([("PCA", pca1), ('clf', clff)])
 ##############################################################################################
 
 ### Pra GridSearch descomentar estimator, parameters e clf ###################################
